@@ -10,6 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 //@TeleOp
 public class Teleop extends OpMode {
+
+    //bucket
+    private Bucket bucket;
+
     //CHASSI
     DcMotor backLeft;
     DcMotor backRight;
@@ -41,6 +45,9 @@ public class Teleop extends OpMode {
 
     @Override
     public void init(){
+
+    bucket = new Bucket(hardwareMap);
+
         //CHASSI
         //Nomes dos motores
         backLeft = hardwareMap.dcMotor.get("BL");
@@ -96,6 +103,15 @@ public class Teleop extends OpMode {
     }
     @Override
     public void loop(){
+
+        //exemplo utilizacao Bucket
+        if (gamepad1.a) {
+            bucket.turn(1, 0);
+        }
+        if (gamepad1.b) {
+            bucket.turn(0.6, 0.4);
+        }
+
         //CHASSI
         double forward = gamepad2.left_stick_y;
         double strafe = -gamepad2.left_stick_x;
