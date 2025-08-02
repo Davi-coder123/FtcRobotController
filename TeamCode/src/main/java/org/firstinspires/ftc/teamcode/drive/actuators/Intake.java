@@ -37,8 +37,8 @@ public class Intake {
             rotate.setPosition(0.7);
             pleft.setPosition(0.75);
             pright.setPosition(0.25);
-            lright.setPosition(1);
-            lleft.setPosition(0.1);
+            lright.setPosition(0.9);
+            lleft.setPosition(0.3);
             sleep(500);
             garra.setPosition(0.3);
         }

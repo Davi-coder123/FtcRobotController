@@ -97,18 +97,17 @@ public class Teleop extends OpMode {
 
         telemetry.addData("Hardware: ", "Initialized");
 
-        lright.setPosition(1);
-        lleft.setPosition(0.1);
+        lright.setPosition(0.85);
+        lleft.setPosition(0.35);
         rotate.setPosition(0.7);
         pleft.setPosition(0.8);
         pright.setPosition(0.2);
         garra.setPosition(0.3);
     }
         public void loop(){
+        telemetry.addData("PoliaLeft: ", polialeft.getCurrentPosition());
+        telemetry.addData("PoliaRight: ", poliaright.getCurrentPosition());
             //INTAKE
-            if (gamepad1.right_trigger > 0.1) {
-                intake.retractsIntake();
-            }
             if (gamepad2.dpad_down) {
                 intake.retractsIntake();
             }
@@ -125,7 +124,8 @@ public class Teleop extends OpMode {
                 rotate.setPosition(0.5);
             }
             if (gamepad1.left_trigger > 0.1) {
-                intake.extendsIntake();
+                polialeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                poliaright.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if (gamepad2.dpad_up) {
                 intake.extendsIntake();
