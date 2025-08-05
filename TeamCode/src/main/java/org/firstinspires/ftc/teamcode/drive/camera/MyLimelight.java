@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.drive.actuators.Outtake;
 @Autonomous
 public class MyLimelight extends LinearOpMode {
     Outtake outtake;
+    Intake intake;
 
     public Limelight3A limelight;
     public IMU imu;
@@ -51,6 +52,7 @@ public class MyLimelight extends LinearOpMode {
         limelight.pipelineSwitch(0); // Switch to pipeline number 0
 
         outtake = new Outtake(hardwareMap);
+        intake = new Intake(hardwareMap);
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters myIMUparameters;
@@ -124,24 +126,35 @@ public class MyLimelight extends LinearOpMode {
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
+                        intake.extendsIntake();
                         turnToAngle(-23);
                         sleep(100);
                         moveCM(-8,0.2);
-                        Coleta();
+                        outtake.slidesDown();
+                        sleep(400);
+                        intake.retractsIntake();
                         sleep(500);
+                        outtake.basketSet();
                         moveCM(9, 0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
+                        intake.extendsIntake();
                         sleep(100);
                         turnToAngle(-5);
                         sleep(100);
                         moveCM(-4, 0.2);
-                        Coleta();
+                        outtake.slidesDown();
+                        sleep(400);
+                        intake.retractsIntake();
+                        sleep(500);
+                        outtake.basketSet();
                         moveCM(4.5,0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
+                        moveCM(-4,0.2);
+                        outtake.slidesDown();
                         break;
                     }
                 }
