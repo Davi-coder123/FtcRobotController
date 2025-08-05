@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.drive.teleop;
 
 import static android.os.SystemClock.sleep;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -32,8 +30,6 @@ public class Intake extends OpMode {
         pleft = hardwareMap.get(Servo.class,"pleft");
         pright = hardwareMap.get(Servo.class,"pright");
 
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         telemetry.setMsTransmissionInterval(11);
         limelight.pipelineSwitch(0);

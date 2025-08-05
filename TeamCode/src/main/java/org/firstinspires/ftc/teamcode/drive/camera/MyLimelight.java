@@ -14,9 +14,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.drive.actuators.Intake;
+import org.firstinspires.ftc.teamcode.drive.actuators.Outtake;
 
 @Autonomous
 public class MyLimelight extends LinearOpMode {
+    Outtake outtake;
 
     public Limelight3A limelight;
     public IMU imu;
@@ -46,6 +49,8 @@ public class MyLimelight extends LinearOpMode {
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
         limelight.start(); // This tells Limelight to start looking!
         limelight.pipelineSwitch(0); // Switch to pipeline number 0
+
+        outtake = new Outtake(hardwareMap);
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters myIMUparameters;
@@ -114,6 +119,7 @@ public class MyLimelight extends LinearOpMode {
                     } else {
                         strafeCM(13,0.15);
                         sleep(200);
+                        outtake.basketSet();
                         moveCM(10.5,0.15);
                         sleep(100);
                         turnToAngle(-30);
@@ -185,20 +191,11 @@ public class MyLimelight extends LinearOpMode {
         stopAllMotors();
     }
     public void Entrega(){
-        viperslide1Up(-1);
-        viperslide2Up(1);
-        sleep(1000);
         Bright.setPosition(0.4);
         Bleft.setPosition(0.6);
-        sleep(1100);
+        sleep(400);
         Bright.setPosition(1);
         Bleft.setPosition(0);
-        sleep(300);
-        viperslide1Down();
-        viperslide2Down();
-        sleep(1200);
-        poliaright.setPower(0);
-        polialeft.setPower(0);
     }
     public void Coleta(){
         lright.setPosition(0.6);
