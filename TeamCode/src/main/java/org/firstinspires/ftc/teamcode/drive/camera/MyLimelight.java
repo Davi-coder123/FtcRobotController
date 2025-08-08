@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.camera;
 
+import static android.os.SystemClock.sleep;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -102,14 +104,14 @@ public class MyLimelight extends LinearOpMode {
                     telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
                     // Etapas sequenciais usando verificação booleana
                     if (!verificacao) {
-                        if (Math.abs(x + 168) > 1) {
-                            startAllMotors(0.2);
+                        if (Math.abs(x + 166) > 1) {
+                            startAllMotors(0.15);
                         } else {
                             stopAllMotors();
                             verificacao = true;
                         }
                     } else if (!verificacaoY) {
-                        if (Math.abs(y + 81) > 1) {
+                        if (Math.abs(y + 80) > 1) {
                             strafeAllMotors(0.2);
                         } else {
                             stopAllMotors();
@@ -118,40 +120,40 @@ public class MyLimelight extends LinearOpMode {
                     } else {
                         strafeCM(13,0.15);
                         sleep(200);
-                        outtake.basketSet();
+                        SlidesUP();
                         moveCM(10.5,0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
-                        intake.extendsIntake();
+                        IntakeFORWARD();
                         turnToAngle(-23);
                         sleep(100);
                         moveCM(-8,0.2);
-                        outtake.slidesDown();
+                        SlidesDOWN();
                         sleep(400);
-                        intake.retractsIntake();
+                        IntakeBACKWARD();
                         sleep(500);
-                        outtake.basketSet();
+                        SlidesUP();
                         moveCM(9, 0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
-                        intake.extendsIntake();
+                        IntakeFORWARD();
                         sleep(100);
                         turnToAngle(-5);
                         sleep(100);
                         moveCM(-4, 0.2);
-                        outtake.slidesDown();
+                        SlidesDOWN();
                         sleep(400);
-                        intake.retractsIntake();
+                        IntakeBACKWARD();
                         sleep(500);
-                        outtake.basketSet();
+                        SlidesUP();
                         moveCM(4.5,0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
                         moveCM(-4,0.2);
-                        outtake.slidesDown();
+                        SlidesDOWN();
                         break;
                     }
                 }
@@ -200,21 +202,44 @@ public class MyLimelight extends LinearOpMode {
         }
         stopAllMotors();
     }
+    public void SlidesUP(){
+        newTarget = ticks;
+        poliaright.setTargetPosition((int) newTarget);
+        polialeft.setTargetPosition((int) newTarget);
+        poliaright.setPower(1);
+        polialeft.setPower(1);
+        poliaright.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        polialeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+    public void SlidesDOWN(){
+        poliaright.setTargetPosition(0);
+        poliaright.setPower(1);
+        poliaright.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        polialeft.setTargetPosition(0);
+        polialeft.setPower(1);
+        polialeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Bright.setPosition(1);
+        Bleft.setPosition(0);
+        sleep(1400);
+        polialeft.setPower(0);
+        poliaright.setPower(0);
+    }
     public void Entrega(){
         Bright.setPosition(0.4);
         Bleft.setPosition(0.6);
-        sleep(400);
+        sleep(1100);
         Bright.setPosition(1);
         Bleft.setPosition(0);
     }
-    public void Coleta(){
+    public void IntakeFORWARD(){
         lright.setPosition(0.6);
         lleft.setPosition(0.7);
         sleep(500);
         garra.setPosition(0.3);
         pleft.setPosition(0);
         pright.setPosition(1);
-        sleep(500);
+    }
+    public void IntakeBACKWARD(){
         garra.setPosition(0.6);
         sleep(200);
         pleft.setPosition(0.8);
