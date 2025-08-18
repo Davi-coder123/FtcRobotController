@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-//tetstetetetettete
 //@TeleOp(name = "IMU Auto Align", group = "Linear Opmode")
 public class AutoAlign extends LinearOpMode {
 

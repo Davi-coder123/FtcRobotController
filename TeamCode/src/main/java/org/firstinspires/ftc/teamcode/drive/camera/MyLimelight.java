@@ -104,14 +104,14 @@ public class MyLimelight extends LinearOpMode {
                     telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
                     // Etapas sequenciais usando verificação booleana
                     if (!verificacao) {
-                        if (Math.abs(x + 166) > 1) {
+                        if (Math.abs(x + 167) > 1) {
                             startAllMotors(0.15);
                         } else {
                             stopAllMotors();
                             verificacao = true;
                         }
                     } else if (!verificacaoY) {
-                        if (Math.abs(y + 80) > 1) {
+                        if (Math.abs(y + 81) > 1) {
                             strafeAllMotors(0.2);
                         } else {
                             stopAllMotors();
@@ -126,7 +126,7 @@ public class MyLimelight extends LinearOpMode {
                         turnToAngle(-30);
                         Entrega();
                         IntakeFORWARD();
-                        turnToAngle(-23);
+                        turnToAngle(-22);
                         sleep(100);
                         moveCM(-8,0.2);
                         SlidesDOWN();
@@ -140,15 +140,15 @@ public class MyLimelight extends LinearOpMode {
                         Entrega();
                         IntakeFORWARD();
                         sleep(100);
-                        turnToAngle(-5);
+                        turnToAngle(0);
                         sleep(100);
-                        moveCM(-4, 0.2);
+                        moveCM(-6, 0.2);
                         SlidesDOWN();
                         sleep(400);
                         IntakeBACKWARD();
                         sleep(500);
                         SlidesUP();
-                        moveCM(4.5,0.15);
+                        moveCM(5.5,0.15);
                         sleep(100);
                         turnToAngle(-30);
                         Entrega();
