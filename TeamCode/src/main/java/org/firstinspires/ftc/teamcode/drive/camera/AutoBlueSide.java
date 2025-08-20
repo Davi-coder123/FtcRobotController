@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive.camera;
 
-import static android.os.SystemClock.sleep;
-
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -17,7 +15,7 @@ import org.firstinspires.ftc.teamcode.drive.actuators.Intake1;
 import org.firstinspires.ftc.teamcode.drive.actuators.Outtake1;
 
 @Autonomous
-public class MyLimelight extends LinearOpMode {
+public class AutoBlueSide extends LinearOpMode {
     Outtake1 outtake;
     Intake1 intake;
 
