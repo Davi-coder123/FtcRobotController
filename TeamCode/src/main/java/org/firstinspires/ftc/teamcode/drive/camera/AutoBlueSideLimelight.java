@@ -24,13 +24,13 @@ public class AutoBlueSideLimelight extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
 
     // Posição alvo da base (em cm e graus)
-    static final double TARGET_X = -167;
-    static final double TARGET_Y = -81;
+    static final double TARGET_X = 192;
+    static final double TARGET_Y = 163;
     static final double TARGET_HEADING = 0;
 
     // Ganhos de controle
-    static final double KP_X = 0.01;
-    static final double KP_Y = 0.01;
+    static final double KP_X = 0.025;
+    static final double KP_Y = 0.025;
     static final double KP_HEADING = 0.01;
 
     // Tolerâncias
@@ -158,10 +158,10 @@ public class AutoBlueSideLimelight extends LinearOpMode {
 
     // -------- Funções de movimento --------
     private void mecanumDrive(double drive, double strafe, double turn) {
-        double fl = drive + strafe - turn;
-        double bl = drive - strafe - turn;
-        double fr = drive - strafe + turn;
-        double br = drive + strafe + turn;
+        double fl = drive - strafe - turn;
+        double bl = drive + strafe - turn;
+        double fr = drive + strafe + turn;
+        double br = drive - strafe + turn;
 
         frontLeft.setPower(fl);
         backLeft.setPower(bl);
