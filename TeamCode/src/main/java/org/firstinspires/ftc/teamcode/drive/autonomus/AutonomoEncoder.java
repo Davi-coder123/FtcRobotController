@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@Autonomous(name = "Move10_Straf10_Turn180", group = "Autonomous")
+//@Autonomous(name = "Move10_Straf10_Turn180", group = "Autonomous")
 public class AutonomoEncoder extends LinearOpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;

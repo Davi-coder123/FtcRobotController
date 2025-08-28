@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@Autonomous(name = "AlignAprilTag_SideCamera", group = "Autonomous")
+//@Autonomous(name = "AlignAprilTag_SideCamera", group = "Autonomous")
 public class AprilTagDetection extends LinearOpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;

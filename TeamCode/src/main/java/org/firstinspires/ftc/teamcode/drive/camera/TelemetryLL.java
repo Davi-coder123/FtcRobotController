@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@Autonomous
+//@Autonomous
 public class TelemetryLL extends OpMode {
     Limelight3A limelight;
     IMU imu;

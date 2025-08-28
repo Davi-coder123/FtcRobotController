@@ -94,8 +94,8 @@ public class Teleop extends OpMode {
 
         telemetry.addData("Hardware: ", "Initialized");
 
-        lright.setPosition(0.85);
-        lleft.setPosition(0.35);
+        lright.setPosition(0.9);
+        lleft.setPosition(0.3);
         rotate.setPosition(0.7);
         pleft.setPosition(0.8);
         pright.setPosition(0.2);
