@@ -16,15 +16,13 @@ import org.firstinspires.ftc.teamcode.drive.actuators.Outtake1;
 
 /**
  * Classe de rotina autônoma para o lado VERMELHO usando visão por Limelight.
- * O robô utiliza informações de pose (x, y, heading) fornecidas pela câmera Limelight
- * e pelo IMU para alinhar automaticamente até uma posição alvo na base.
+ * Controle PD (Proporcional + Derivativo) para drive, strafe e heading.
  *
- * - Detecta sua posição no campo usando visão (Limelight).
- * - Ajusta drive, strafe e rotação via controle proporcional (P).
- * - Após chegar na base, executa uma sequência de manipulação de mecanismos
- *   (slides, intake, entrega, etc).
+ * - Detecta pose (x, y, heading) com Limelight e IMU.
+ * - Move o robô até a base usando PD.
+ * - Ao chegar na base, executa a sequência de mecanismos.
  */
-@Autonomous(name="Auto Red Side (Limelight)", group="Autonomous")
+@Autonomous(name="Auto Red Side (Limelight PD)", group="Autonomous")
 public class AutoRedSideLimelight extends LinearOpMode {
     // Subsistemas do robô
     Outtake1 outtake;
@@ -36,173 +34,153 @@ public class AutoRedSideLimelight extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
 
     // ----------------- PARÂMETROS DE CONTROLE -----------------
+    static final double TARGET_X = 192;     // cm
+    static final double TARGET_Y = 163;     // cm
+    static final double TARGET_HEADING = 0; // graus
 
-    // Posição alvo da base (em centímetros e graus)
-    static final double TARGET_X = 192;     // Alvo em X
-    static final double TARGET_Y = 163;     // Alvo em Y
-    static final double TARGET_HEADING = 0; // Alvo de orientação (graus)
+    // Ganhos de controle PD (P + Derivativo)
+    static final double KP_X = 0.055, KD_X = 0.005;
+    static final double KP_Y = 0.055, KD_Y = 0.005;
+    static final double KP_HEADING = 0.01, KD_HEADING = 0.005;
 
-    // Ganhos de controle proporcional
-    static final double KP_X = 0.05;
-    static final double KP_Y = 0.05;
-    static final double KP_HEADING = 0.01;
-
-    // Tolerâncias para considerar que chegou ao alvo
+    // Tolerâncias de chegada
     static final double POS_TOLERANCE = 1.0; // cm
     static final double ANG_TOLERANCE = 2.0; // graus
 
-    // Flag para saber se o robô chegou à base
     boolean reachedBase = false;
 
+    // Histórico para cálculo derivado
+    private double lastErrorX = 0, lastErrorY = 0, lastErrorHeading = 0;
+    private long lastTime = 0;
+
     // ----------------- HARDWARE ADICIONAL -----------------
-    DcMotor poliaright;
-    DcMotor polialeft;
-    Servo Bright;
-    Servo Bleft;
-    Servo garrinha;
-    double ticks = 2750;     // Alvo de encoder para slides
-    double newTarget;        // Variável auxiliar para controle dos slides
-    Servo rotate;
-    Servo garra;
-    Servo pleft;
-    Servo pright;
-    Servo lright;
-    Servo lleft;
+    DcMotor poliaright, polialeft;
+    Servo Bright, Bleft, garrinha, rotate, garra, pleft, pright, lright, lleft;
+    double ticks = 2750;
+    double newTarget;
 
     @Override
     public void runOpMode() {
         // ----------------- INICIALIZAÇÃO -----------------
-
-        // Configuração da Limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.setPollRateHz(100); // Atualizações a cada 10ms
+        limelight.setPollRateHz(100);
         limelight.start();
-        limelight.pipelineSwitch(0); // Seleção de pipeline
+        limelight.pipelineSwitch(0);
 
-        // Inicialização dos subsistemas
         outtake = new Outtake1(hardwareMap);
         intake = new Intake1(hardwareMap);
 
-        // Configuração do IMU (giroscópio/orientação)
         imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters myIMUparameters;
-        myIMUparameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
-        imu.initialize(myIMUparameters);
+                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
 
-        // Mapeamento de servos
+        // Servos
         lright = hardwareMap.get(Servo.class, "lright");
         lleft = hardwareMap.get(Servo.class, "lleft");
         garra = hardwareMap.get(Servo.class, "garra");
         pleft = hardwareMap.get(Servo.class, "pleft");
         pright = hardwareMap.get(Servo.class, "pright");
         rotate = hardwareMap.get(Servo.class, "rotate");
-
-        // Mapeamento de motores e servos adicionais
-        poliaright = hardwareMap.get(DcMotor.class, "poliaright");
-        polialeft = hardwareMap.get(DcMotor.class, "polialeft");
         Bright = hardwareMap.get(Servo.class, "bright");
         Bleft = hardwareMap.get(Servo.class, "bleft");
         garrinha = hardwareMap.get(Servo.class, "garrinha");
 
-        // Reset dos encoders dos slides
+        // Slides
+        poliaright = hardwareMap.get(DcMotor.class, "poliaright");
+        polialeft = hardwareMap.get(DcMotor.class, "polialeft");
         poliaright.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         poliaright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         polialeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         polialeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Mapeamento dos motores de movimentação (mecanum)
+        // Drive mecanum
         frontLeft = hardwareMap.get(DcMotor.class, "FL");
         frontRight = hardwareMap.get(DcMotor.class, "FR");
         backLeft = hardwareMap.get(DcMotor.class, "BL");
         backRight = hardwareMap.get(DcMotor.class, "BR");
-
-        // Inversão dos motores do lado direito
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.REVERSE);
 
-        // Espera pelo start
         waitForStart();
+
+        lastTime = System.currentTimeMillis();
 
         // ----------------- LOOP PRINCIPAL -----------------
         while (opModeIsActive()) {
-            rotate.setPosition(0.7); // Ajuste inicial do servo rotate
+            rotate.setPosition(0.7);
 
-            // Captura de resultado da câmera Limelight
             LLResult result = limelight.getLatestResult();
             if (result != null && result.isValid()) {
-                // Atualiza orientação do robô para melhorar precisão do Limelight
                 double robotYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
                 limelight.updateRobotOrientation(robotYaw);
 
-                // Pega a pose 3D (x, y, heading) do robô no campo
                 Pose3D botpose_mt2 = result.getBotpose_MT2();
                 if (botpose_mt2 != null) {
-                    double x = botpose_mt2.getPosition().x * 100; // metros -> cm
-                    double y = botpose_mt2.getPosition().y * 100; // metros -> cm
+                    double x = botpose_mt2.getPosition().x * 100;
+                    double y = botpose_mt2.getPosition().y * 100;
                     double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-                    // Cálculo dos erros relativos ao alvo
+                    // Erros
                     double errorX = TARGET_X - x;
                     double errorY = TARGET_Y - y;
                     double errorHeading = angleDiff(TARGET_HEADING, heading);
 
-                    // Exibição no telemetry (debug)
-                    telemetry.addData("Pose (cm,°)", "X: %.1f  Y: %.1f  H: %.1f", x, y, heading);
-                    telemetry.addData("Erros", "dX: %.1f  dY: %.1f  dH: %.1f", errorX, errorY, errorHeading);
+                    long currentTime = System.currentTimeMillis();
+                    double dt = (currentTime - lastTime) / 1000.0;
 
-                    // Se ainda não chegou na base, corrige movimento
+                    // Derivadas
+                    double dX = dt > 0 ? (errorX - lastErrorX) / dt : 0;
+                    double dY = dt > 0 ? (errorY - lastErrorY) / dt : 0;
+                    double dH = dt > 0 ? (errorHeading - lastErrorHeading) / dt : 0;
+
+                    // Controle PD
+                    double drive = (KP_X * errorX) + (KD_X * dX);
+                    double strafe = (KP_Y * errorY) + (KD_Y * dY);
+                    double turn = (KP_HEADING * errorHeading) + (KD_HEADING * dH);
+
+                    // Limite de potência
+                    drive = Math.max(-0.3, Math.min(0.3, drive));
+                    strafe = Math.max(-0.4, Math.min(0.4, strafe));
+                    turn = Math.max(-0.25, Math.min(0.25, turn));
+
                     if (!reachedBase) {
                         if (Math.abs(errorX) < POS_TOLERANCE &&
                                 Math.abs(errorY) < POS_TOLERANCE &&
                                 Math.abs(errorHeading) < ANG_TOLERANCE) {
-                            // Condição de chegada
                             stopAllMotors();
                             reachedBase = true;
                         } else {
-                            // Correção proporcional (P Controller)
-                            double drive = KP_X * errorX;
-                            double strafe = KP_Y * errorY;
-                            double turn = KP_HEADING * errorHeading;
-
-                            // Limitação de potências para segurança
-                            drive = Math.max(-0.3, Math.min(0.3, drive));
-                            strafe = Math.max(-0.3, Math.min(0.3, strafe));
-                            turn = Math.max(-0.25, Math.min(0.25, turn));
-
                             mecanumDrive(drive, strafe, turn);
                         }
-                    } else {
-                        /** 🚀 Exemplo de sequência após alinhar na base
-                         *  SlidesUP();
-                         *  sleep(500);
-                         *  Entrega();
-                         *  IntakeFORWARD();
-                         *  sleep(500);
-                         *  IntakeBACKWARD();
-                         *  sleep(500);
-                         *  SlidesDOWN();
-                         *  break;
-                         */
-
+                    }
+                    else{
+                        //Adicionar sequencia de passos aqui
+                        //Depois adicionar uma verificação que pula direto para esse escopo se o tempo passou de "x" segundos para caso ele não se alinhe perfeitamente
                         telemetry.addData("Posição X: ", errorX);
                         telemetry.addData("Posição Y:", errorY);
                         telemetry.addData("Chegou na posição: ", reachedBase);
                     }
+
+                    // Atualiza histórico
+                    lastErrorX = errorX;
+                    lastErrorY = errorY;
+                    lastErrorHeading = errorHeading;
+                    lastTime = currentTime;
+
+                    // Debug
+                    telemetry.addData("Pose", "X: %.1f Y: %.1f H: %.1f", x, y, heading);
+                    telemetry.addData("Erro", "dX: %.1f dY: %.1f dH: %.1f", errorX, errorY, errorHeading);
+                    telemetry.addData("Correção", "Drive: %.2f Strafe: %.2f Turn: %.2f", drive, strafe, turn);
                 }
             } else {
-                telemetry.addData("Limelight", "No Targets"); // Caso não detecte nada
+                telemetry.addData("Limelight", "No Targets");
             }
             telemetry.update();
         }
     }
 
     // -------- Funções de movimento --------
-
-    /**
-     * Movimento com rodas mecanum (controle independente de drive, strafe e rotação).
-     */
     private void mecanumDrive(double drive, double strafe, double turn) {
         double fl = drive - strafe - turn;
         double bl = drive + strafe - turn;
@@ -215,19 +193,12 @@ public class AutoRedSideLimelight extends LinearOpMode {
         backRight.setPower(br);
     }
 
-    /**
-     * Para todos os motores de movimentação.
-     */
     private void stopAllMotors() {
         for (DcMotor m : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
             m.setPower(0);
         }
     }
 
-    /**
-     * Calcula a diferença angular entre alvo e orientação atual,
-     * garantindo que esteja entre -180° e 180°.
-     */
     private double angleDiff(double target, double current) {
         double error = target - current;
         while (error > 180) error -= 360;
@@ -236,8 +207,6 @@ public class AutoRedSideLimelight extends LinearOpMode {
     }
 
     // -------- Slides e mecanismos --------
-
-    /** Sobe os slides até a altura definida por ticks. */
     public void SlidesUP(){
         newTarget = ticks;
         poliaright.setTargetPosition((int) newTarget);
@@ -248,7 +217,6 @@ public class AutoRedSideLimelight extends LinearOpMode {
         polialeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    /** Desce os slides até a posição inicial. */
     public void SlidesDOWN(){
         poliaright.setTargetPosition(0);
         polialeft.setTargetPosition(0);
@@ -263,7 +231,6 @@ public class AutoRedSideLimelight extends LinearOpMode {
         poliaright.setPower(0);
     }
 
-    /** Sequência de entrega do objeto. */
     public void Entrega(){
         Bright.setPosition(0.4);
         Bleft.setPosition(0.6);
@@ -272,7 +239,6 @@ public class AutoRedSideLimelight extends LinearOpMode {
         Bleft.setPosition(0);
     }
 
-    /** Movimento para intake coletar o objeto. */
     public void IntakeFORWARD(){
         lright.setPosition(0.6);
         lleft.setPosition(0.7);
@@ -282,7 +248,6 @@ public class AutoRedSideLimelight extends LinearOpMode {
         pright.setPosition(1);
     }
 
-    /** Movimento para intake soltar o objeto. */
     public void IntakeBACKWARD(){
         garra.setPosition(0.6);
         sleep(200);
