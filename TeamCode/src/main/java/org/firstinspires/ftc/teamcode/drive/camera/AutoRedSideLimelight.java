@@ -34,9 +34,12 @@ public class AutoRedSideLimelight extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
 
     // ----------------- PARÂMETROS DE CONTROLE -----------------
-    static final double TARGET_X = 192;     // cm
+    static  final double REAL_TARGET_X = 185;
+    static final double TARGET_X = 185;     // cm
+    static final double REAL_TARGET_Y = 160;
     static final double TARGET_Y = 163;     // cm
     static final double TARGET_HEADING = 0; // graus
+    static final double TICKS_PER_CM = 17.82; // Para o nosso chassi
 
     // Ganhos de controle PD (P + Derivativo)
     static final double KP_X = 0.055, KD_X = 0.005;
@@ -44,8 +47,9 @@ public class AutoRedSideLimelight extends LinearOpMode {
     static final double KP_HEADING = 0.01, KD_HEADING = 0.005;
 
     // Tolerâncias de chegada
-    static final double POS_TOLERANCE = 1.0; // cm
+    static final double POS_TOLERANCE = 2.0; // cm
     static final double ANG_TOLERANCE = 2.0; // graus
+    static final double TURN_TOLERANCE = 1.5; // graus de margem de erro
 
     boolean reachedBase = false;
 
@@ -122,8 +126,10 @@ public class AutoRedSideLimelight extends LinearOpMode {
                     double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
                     // Erros
-                    double errorX = TARGET_X - x;
-                    double errorY = TARGET_Y - y;
+                    double errorX = REAL_TARGET_X - x;
+                    double reachedErrorX = TARGET_X - x;
+                    double errorY = REAL_TARGET_Y - y;
+                    double reachedErrorY = TARGET_Y - y;
                     double errorHeading = angleDiff(TARGET_HEADING, heading);
 
                     long currentTime = System.currentTimeMillis();
@@ -141,12 +147,12 @@ public class AutoRedSideLimelight extends LinearOpMode {
 
                     // Limite de potência
                     drive = Math.max(-0.3, Math.min(0.3, drive));
-                    strafe = Math.max(-0.4, Math.min(0.4, strafe));
+                    strafe = Math.max(-0.45, Math.min(0.45, strafe));
                     turn = Math.max(-0.25, Math.min(0.25, turn));
 
                     if (!reachedBase) {
-                        if (Math.abs(errorX) < POS_TOLERANCE &&
-                                Math.abs(errorY) < POS_TOLERANCE &&
+                        if (Math.abs(reachedErrorX) < POS_TOLERANCE &&
+                                Math.abs(reachedErrorY) < POS_TOLERANCE &&
                                 Math.abs(errorHeading) < ANG_TOLERANCE) {
                             stopAllMotors();
                             reachedBase = true;
@@ -160,6 +166,45 @@ public class AutoRedSideLimelight extends LinearOpMode {
                         telemetry.addData("Posição X: ", errorX);
                         telemetry.addData("Posição Y:", errorY);
                         telemetry.addData("Chegou na posição: ", reachedBase);
+                        sleep(500);
+                        strafeCM(13,0.15);
+                        sleep(200);
+                        SlidesUP();
+                        moveCM(10.5,0.15);
+                        sleep(100);
+                        turnToAngle(-30);
+                        Entrega();
+                        IntakeFORWARD();
+                        turnToAngle(-22);
+                        sleep(100);
+                        moveCM(-8,0.2);
+                        SlidesDOWN();
+                        sleep(400);
+                        IntakeBACKWARD();
+                        sleep(500);
+                        SlidesUP();
+                        moveCM(9, 0.15);
+                        sleep(100);
+                        turnToAngle(-30);
+                        Entrega();
+                        IntakeFORWARD();
+                        sleep(100);
+                        turnToAngle(-3);
+                        sleep(100);
+                        moveCM(-6, 0.2);
+                        SlidesDOWN();
+                        sleep(400);
+                        IntakeBACKWARD();
+                        sleep(500);
+                        SlidesUP();
+                        moveCM(5.5,0.15);
+                        sleep(100);
+                        turnToAngle(-30);
+                        Entrega();
+                        moveCM(-4,0.2);
+                        SlidesDOWN();
+                        break;
+
                     }
 
                     // Atualiza histórico
@@ -226,7 +271,7 @@ public class AutoRedSideLimelight extends LinearOpMode {
         polialeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Bright.setPosition(1);
         Bleft.setPosition(0);
-        sleep(1000);
+        sleep(1100);
         polialeft.setPower(0);
         poliaright.setPower(0);
     }
@@ -258,5 +303,77 @@ public class AutoRedSideLimelight extends LinearOpMode {
         sleep(500);
         garra.setPosition(0.3);
         sleep(500);
+    }
+
+    private void strafeCM(double cm, double power) {
+        int ticks = (int) (cm * TICKS_PER_CM);
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + ticks);
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - ticks);
+        backLeft.setTargetPosition(backLeft.getCurrentPosition() - ticks);
+        backRight.setTargetPosition(backRight.getCurrentPosition() + ticks);
+
+        for (DcMotor m : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
+            m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            m.setPower(power);
+        }
+
+        while (opModeIsActive() &&
+                (frontLeft.isBusy() || frontRight.isBusy() || backLeft.isBusy() || backRight.isBusy())) {
+            telemetry.addLine("Strafando...");
+            telemetry.update();
+        }
+
+        stopAllMotors();
+    }
+    private void moveCM(double cm, double power) {
+        int ticks = (int) (cm * TICKS_PER_CM);
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + ticks);
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() + ticks);
+        backLeft.setTargetPosition(backLeft.getCurrentPosition() + ticks);
+        backRight.setTargetPosition(backRight.getCurrentPosition() + ticks);
+
+        for (DcMotor m : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
+            m.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            m.setPower(power);
+        }
+
+        while (opModeIsActive() &&
+                (frontLeft.isBusy() || frontRight.isBusy() || backLeft.isBusy() || backRight.isBusy())) {
+            telemetry.addLine("Movendo para frente...");
+            telemetry.update();
+        }
+        stopAllMotors();
+    }
+    private void turnToAngle(double targetAngle) {
+        double currentYaw = getYaw();
+        double error = angleDiff(targetAngle, currentYaw);
+
+        // Corrigir modo dos motores
+        for (DcMotor m : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
+            m.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+
+        while (opModeIsActive() && Math.abs(error) > TURN_TOLERANCE) {
+            double power = 0.25 * Math.signum(error);
+
+            frontLeft.setPower(-power);
+            backLeft.setPower(-power);
+            frontRight.setPower(power);
+            backRight.setPower(power);
+
+            currentYaw = getYaw();
+            error = angleDiff(targetAngle, currentYaw);
+
+            telemetry.addData("Yaw", currentYaw);
+            telemetry.addData("Target", targetAngle);
+            telemetry.update();
+
+        }
+        stopAllMotors();
+    }
+    private double getYaw() {
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 }
