@@ -102,14 +102,14 @@ public class AutoRedSide extends LinearOpMode {
                     telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
                     // Etapas sequenciais usando verificação booleana
                     if (!verificacao) {
-                        if (Math.abs(x - 192) > 1) {
+                        if (Math.abs(x + 167) > 1) {
                             startAllMotors(0.15);
                         } else {
                             stopAllMotors();
                             verificacao = true;
                         }
                     } else if (!verificacaoY) {
-                        if (Math.abs(y - 163) > 1) {
+                        if (Math.abs(y + 81) > 1) {
                             strafeAllMotors(0.2);
                         } else {
                             stopAllMotors();
@@ -138,7 +138,7 @@ public class AutoRedSide extends LinearOpMode {
                         Entrega();
                         IntakeFORWARD();
                         sleep(100);
-                        turnToAngle(-3);
+                        turnToAngle(0);
                         sleep(100);
                         moveCM(-6, 0.2);
                         SlidesDOWN();
